@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"dbsample/models"
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -26,32 +25,45 @@ func main() {
 	// プログラムが終了するときコネクションがcloseされるようにする
 	defer db.Close()
 
-	articleID := 1
-	const sqlStr = `
-		select *
+	tx, err := db.Begin()
+	if err != nil {
+		fmt.Println()
+		return
+	}
+
+	// 現在のいいね数を取得するクエリを実行
+	article_id := 1
+	const sqlGetNice = `
+		select nice
 		from articles
 		where article_id = ?;
 	`
 
-	row := db.QueryRow(sqlStr, articleID)
+	row := tx.QueryRow(sqlGetNice, article_id)
 	if err := row.Err(); err != nil {
 		fmt.Println(err)
+		tx.Rollback()
 		return
 	}
 
-	var article models.Article
-	var createdTime sql.NullTime
-
-	err = row.Scan(&article.ID, &article.Title,
-		&article.Contents, &article.UserName, &article.NickNum, &createdTime)
+	// 変数nicenumにいいね数を流し込む
+	var nicenum int
+	err = row.Scan(&nicenum)
 	if err != nil {
 		fmt.Println(err)
+		tx.Rollback()
 		return
 	}
 
-	if createdTime.Valid {
-		article.CreatedAt = createdTime.Time
+	// いいね数を+1する更新処理を行う
+	const sqlUpdateNice = `update articles set nice = ? where article_id = ?`
+	_, err = tx.Exec(sqlUpdateNice, nicenum+1, article_id)
+	if err != nil {
+		fmt.Println(err)
+		tx.Rollback()
+		return
 	}
 
-	fmt.Printf("%+v\n", article)
+	// コミットして処理内容を確定させるselect nice from articles where article_id = 1;
+	tx.Commit()
 }

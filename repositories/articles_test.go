@@ -23,31 +23,57 @@ func TestSelectArticleDetail(t *testing.T) {
 	}
 	defer db.Close()
 
-	expected := models.Article{
-		ID:       1,
-		Title:    "firstPost",
-		Contents: "This is my first blog",
-		UserName: "saki",
-		NickNum:  2,
-	}
-	got, err := repositories.SelectArticleDetail(db, expected.ID)
-	if err != nil {
-		t.Fatal(err)
+	//step1 テスト名とテストケースのセットのスライスを作成
+	tests := []struct {
+		testTitle string
+		expected  models.Article
+	}{
+		{
+			testTitle: "subtest1",
+			expected: models.Article{
+				ID:       1,
+				Title:    "firstPost",
+				Contents: "This is my first blog",
+				UserName: "saki",
+				NickNum:  2,
+			},
+		}, {
+			testTitle: "subtest2",
+			expected: models.Article{
+				ID:       2,
+				Title:    "2nd",
+				Contents: "Second blog post",
+				UserName: "saki",
+				NickNum:  4,
+			},
+		},
 	}
 
-	if got.ID != expected.ID {
-		t.Errorf("ID: got %d but want %d\n", got.ID, expected.ID)
+	// step2 step1で作成したものをfor文で回す
+	for _, test := range tests {
+		// step3 for文の中でサブテスト実施
+		t.Run(test.testTitle, func(t *testing.T) {
+			got, err := repositories.SelectArticleDetail(db, test.expected.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if got.ID != test.expected.ID {
+				t.Errorf("ID: got %d but want %d\n", got.ID, test.expected.ID)
+			}
+			if got.Title != test.expected.Title {
+				t.Errorf("Title: got %s but want %s\n", got.Title, test.expected.Title)
+			}
+			if got.Contents != test.expected.Contents {
+				t.Errorf("Contents: got %s but want %s\n", got.Contents, test.expected.Contents)
+			}
+			if got.UserName != test.expected.UserName {
+				t.Errorf("UserName: got %s but want %s\n", got.UserName, test.expected.UserName)
+			}
+			if got.NickNum != test.expected.NickNum {
+				t.Errorf("NickName: got %d but want %d\n", got.NickNum, test.expected.NickNum)
+			}
+		})
 	}
-	if got.Title != expected.Title {
-		t.Errorf("Title: got %s but want %s\n", got.Title, expected.Title)
-	}
-	if got.Contents != expected.Contents {
-		t.Errorf("Contents: got %s but want %s\n", got.Contents, expected.Contents)
-	}
-	if got.UserName != expected.UserName {
-		t.Errorf("UserName: got %s but want %s\n", got.UserName, expected.UserName)
-	}
-	if got.NickNum != expected.NickNum {
-		t.Errorf("NickNum: got %d but want %d\n", got.NickNum, expected.NickNum)
-	}
+
 }

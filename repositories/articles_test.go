@@ -5,6 +5,7 @@ import (
 
 	"github.com/yziori/go-intermediate/models"
 	"github.com/yziori/go-intermediate/repositories"
+	"github.com/yziori/go-intermediate/repositories/testdata"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -17,22 +18,10 @@ func TestSelectArticleDetail(t *testing.T) {
 	}{
 		{
 			testTitle: "subtest1",
-			expected: models.Article{
-				ID:       1,
-				Title:    "firstPost",
-				Contents: "This is my first blog",
-				UserName: "saki",
-				NickNum:  2,
-			},
+			expected:  testdata.ArticleTestData[0],
 		}, {
 			testTitle: "subtest2",
-			expected: models.Article{
-				ID:       2,
-				Title:    "2nd",
-				Contents: "Second blog post",
-				UserName: "saki",
-				NickNum:  4,
-			},
+			expected:  testdata.ArticleTestData[1],
 		},
 	}
 
@@ -68,7 +57,7 @@ func TestSelectArticleDetail(t *testing.T) {
 // SelectArticleList関数のテスト
 func TestSelectArticleList(t *testing.T) {
 	// テスト対象の関数を実行
-	expectedNum := 2
+	expectedNum := len(testdata.ArticleTestData)
 	got, err := repositories.SelectArticleList(testDB, 1)
 	if err != nil {
 		t.Fatal(err)

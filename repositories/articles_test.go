@@ -79,3 +79,72 @@ func TestSelectArticleList(t *testing.T) {
 		t.Errorf("want %d but got %d\n", expectedNum, num)
 	}
 }
+
+// InsertArticle関数のテスト
+func TestInsertArticle(t *testing.T) {
+	article := models.Article{
+		Title:    "insertTest",
+		Contents: "testest",
+		UserName: "saki",
+	}
+
+	expectedArticleNum := 3
+	newArticle, err := repositories.InsertArticle(testDB, article)
+	if err != nil {
+		t.Error(err)
+	}
+	if newArticle.ID != expectedArticleNum {
+		t.Errorf("new article id is expected %d but got %d\n", expectedArticleNum, newArticle.ID)
+	}
+
+	t.Cleanup(func() {
+		const deleteSQL = `
+		DELETE FROM articles
+		WHERE title = ? AND contents = ? AND username = ?
+	`
+		testDB.Exec(deleteSQL, article.Title, article.Contents, article.UserName)
+
+		// Auto Incrementのリセットを追加
+		const resetSQL = `ALTER TABLE articles AUTO_INCREMENT = 3`
+		_, err = testDB.Exec(resetSQL)
+		if err != nil {
+			t.Errorf("failed to reset AUTO_INCREMENT: %v", err)
+		}
+	})
+}
+
+// UpdateNickNum関数のテスト
+func TestUpdateNickNum(t *testing.T) {
+	articleID := 1
+	before, err := repositories.SelectArticleDetail(testDB, articleID)
+	if err != nil {
+		t.Fatal("fail to get before article")
+	}
+
+	err = repositories.UpdateNiceNum(testDB, articleID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	after, err := repositories.SelectArticleDetail(testDB, articleID)
+	if err != nil {
+		t.Fatal("fail to get after article")
+	}
+
+	if after.NickNum-before.NickNum != 1 {
+		t.Errorf("NickNum is not updated: before %d, after %d\n", before.NickNum, after.NickNum)
+	}
+
+	// テスト後に元に戻す
+	t.Cleanup(func() {
+		const resetSQL = `
+		UPDATE articles
+		SET nice = 2
+		WHERE article_id = 1
+	`
+		_, err = testDB.Exec(resetSQL)
+		if err != nil {
+			t.Errorf("failed to reset nice: %v", err)
+		}
+	})
+}

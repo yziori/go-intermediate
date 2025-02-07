@@ -7,9 +7,8 @@ CREATE TABLE IF NOT EXISTS articles (
     nice INTEGER NOT NULL,
     created_at DATETIME
 );
-
 -- コメントデータを格納するためのテーブル
-CREATE TABLE IF NOT EXISTS `comment` (
+CREATE TABLE IF NOT EXISTS comments (
     comment_id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     article_id INTEGER UNSIGNED NOT NULL,
     message TEXT NOT NULL,

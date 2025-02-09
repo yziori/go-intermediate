@@ -8,9 +8,7 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
-	"github.com/yziori/go-intermediate/controllers"
-	"github.com/yziori/go-intermediate/services"
+	"github.com/yziori/go-intermediate/routers"
 )
 
 var (
@@ -26,18 +24,8 @@ func main() {
 		log.Println("fail to connect DB")
 		return
 	}
-	ser := services.NewMyAppService(db)
-	con := controllers.NewMyAppController(ser)
 
-	r := mux.NewRouter()
-
-	// 定義したハンドラをサーバーで使用するように登録
-	r.HandleFunc("/article", con.PostArticleHandler).Methods(http.MethodPost)
-	r.HandleFunc("/article/list", con.ArticleListHandler).Methods(http.MethodGet)
-	r.HandleFunc("/article/{id:[0-9]+}",
-		con.ArticleDetailHandler).Methods(http.MethodGet)
-	r.HandleFunc("/article/nice", con.PostNiceHandler).Methods(http.MethodPost)
-	r.HandleFunc("/comment", con.PostCommentHandler).Methods(http.MethodPost)
+	r := routers.NewRouter(db)
 
 	// サーバー起動時のログを出力する
 	log.Println("server start at port 8080")

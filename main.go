@@ -8,7 +8,7 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/yziori/go-intermediate/routers"
+	"github.com/yziori/go-intermediate/api"
 )
 
 var (
@@ -25,7 +25,7 @@ func main() {
 		return
 	}
 
-	r := routers.NewRouter(db)
+	r := api.NewRouter(db)
 
 	// サーバー起動時のログを出力する
 	log.Println("server start at port 8080")

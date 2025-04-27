@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/yziori/go-intermediate/apperrors"
 	"github.com/yziori/go-intermediate/controllers/services"
 	"github.com/yziori/go-intermediate/models"
 )
@@ -21,6 +22,7 @@ func (c *CommentController) PostCommentHandler(w http.ResponseWriter, req *http.
 	var reqComment models.Comment
 
 	if err := json.NewDecoder(req.Body).Decode(&reqComment); err != nil {
+		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
 		http.Error(w, "fail to decode json\n", http.StatusBadRequest)
 		return
 	}

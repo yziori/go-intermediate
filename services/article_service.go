@@ -1,6 +1,10 @@
 package services
 
 import (
+	"database/sql"
+	"errors"
+
+	"github.com/yziori/go-intermediate/apperrors"
 	"github.com/yziori/go-intermediate/models"
 	"github.com/yziori/go-intermediate/repositories"
 )
@@ -11,6 +15,7 @@ func (s *MyAppService) PostArticleService(article models.Article) (models.Articl
 	// 受け取った記事をDBに登録する
 	newArticle, err := repositories.InsertArticle(s.db, article)
 	if err != nil {
+		err = apperrors.InsertDataFailed.Wrap(err, "failed to record data")
 		return models.Article{}, err
 	}
 
@@ -22,7 +27,15 @@ func (s *MyAppService) PostArticleService(article models.Article) (models.Articl
 func (s *MyAppService) GetArticleListService(page int) ([]models.Article, error) {
 	articleList, err := repositories.SelectArticleList(s.db, page)
 	if err != nil {
+		err = apperrors.GetDataFailed.Wrap(err, "failed to get data")
 		return []models.Article{}, err
+	}
+
+	// 取得結果が0件だった時のエラー
+	// db.Query()はエラーを返さないので、エラーをラップして返す
+	if len(articleList) == 0 {
+		err := apperrors.NAData.Wrap(ErrNoData, "no data")
+		return nil, err
 	}
 
 	return articleList, nil
@@ -33,11 +46,17 @@ func (s *MyAppService) GetArticleListService(page int) ([]models.Article, error)
 func (s *MyAppService) GetArticleService(articleID int) (models.Article, error) {
 	article, err := repositories.SelectArticleDetail(s.db, articleID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			err = apperrors.NAData.Wrap(err, "no data")
+			return models.Article{}, err
+		}
+		err = apperrors.GetDataFailed.Wrap(err, "failed to get data")
 		return models.Article{}, err
 	}
 
 	commentList, err := repositories.SelectCommentList(s.db, articleID)
 	if err != nil {
+		err = apperrors.GetDataFailed.Wrap(err, "failed to get data")
 		return models.Article{}, err
 	}
 
